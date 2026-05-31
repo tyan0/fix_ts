@@ -31,7 +31,9 @@ void cleanup(AVFormatContext *ifmt, AVFormatContext *ofmt,
 int main(int argc, char **argv) {
 	int ret = 1;
 	if (argc < 3) {
-		fprintf(stderr, "Usage: %s in.mkv out.mkv\n", argv[0]);
+		fprintf(stderr, "Usage: %s in.mkv out.mkv [m/n]\n"
+				"\tm/n: frame_rate "
+				"(e.g. 30000/1001: 30fps in NTSC)\n", argv[0]);
 		return 1;
 	}
 
@@ -72,8 +74,12 @@ int main(int argc, char **argv) {
 				map = realloc(map, frame_cap * sizeof(FrameMap));
 			}
 			uint8_t *data; int size;
-			av_parser_parse2(parser, codec_ctx, &data, &size,
-					pkt.data, pkt.size, AV_NOPTS_VALUE, AV_NOPTS_VALUE, 0);
+			do {
+				int len = av_parser_parse2(parser, codec_ctx, &data, &size,
+						pkt.data, pkt.size, AV_NOPTS_VALUE, AV_NOPTS_VALUE, 0);
+				pkt.data += len;
+				pkt.size -= len;
+			} while (!size);
 			if (prev_pict_num >= 0 &&
 					parser->output_picture_number - prev_pict_num
 					< -MAX_REORDER_DELAY)
@@ -100,6 +106,8 @@ int main(int argc, char **argv) {
 	for (unsigned i = 0; i < ifmt->nb_streams; i++) {
 		AVStream *out_st = avformat_new_stream(ofmt, NULL);
 		avcodec_parameters_copy(out_st->codecpar, ifmt->streams[i]->codecpar);
+		if (strstr(ifmt->iformat->name, ofmt->oformat->name) == NULL)
+			out_st->codecpar->codec_tag = 0;
 	}
 
 	AVStream *in_st = ifmt->streams[video_index];
@@ -113,11 +121,18 @@ int main(int argc, char **argv) {
 
 	AVRational out_tb = ofmt->streams[video_index]->time_base;
 
-	AVRational frame_rate = in_st->avg_frame_rate;
-	if (frame_rate.num == 0)
-		frame_rate = in_st->r_frame_rate;
+	int num, den;
+	AVRational frame_rate;
+	if (argc >= 4 && sscanf(argv[3], "%d/%d", &num, &den) == 2) {
+		frame_rate = (AVRational){num, den};
+	} else {
+		frame_rate = in_st->avg_frame_rate;
+		if (frame_rate.num == 0)
+			frame_rate = in_st->r_frame_rate;
+	}
 
-	av_seek_frame(ifmt, video_index, 0, AVSEEK_FLAG_BACKWARD);
+	if (av_seek_frame(ifmt, video_index, 0, AVSEEK_FLAG_BACKWARD) <= 0)
+		av_seek_frame(ifmt, video_index, 0, AVSEEK_FLAG_BYTE);
 	int current = 0;
 	while (av_read_frame(ifmt, &pkt) >= 0) {
 		if (pkt.stream_index == video_index) {
