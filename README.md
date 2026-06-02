@@ -30,7 +30,8 @@ When you manupulate H.264 Video files, Fedora's ffmpeg package occasionally outp
 If these warning messages are shown, the timestamps (PTS, DTS) of the output file is possiblly broken.
 
 ```
-Usage: fix_ts broken.mkv output.mkv
+Usage: fix_ts broken.mkv output.mkv [m/n]
+       m/n (optional): frame_rate (e.g. 30000/1001: 30fps in NTSC)
 ```
 
 ## Build requires
