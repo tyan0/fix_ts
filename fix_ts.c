@@ -66,6 +66,7 @@ int main(int argc, char **argv) {
 	AVPacket pkt;
 	uint64_t pict_num_msb = 0;
 	int prev_pict_num = -1;
+	int max_pict_num = 0;
 
 	while (av_read_frame(ifmt, &pkt) >= 0) {
 		if (pkt.stream_index == video_index) {
@@ -80,13 +81,16 @@ int main(int argc, char **argv) {
 				pkt.data += len;
 				pkt.size -= len;
 			} while (!size);
+			if (parser->output_picture_number > max_pict_num)
+				max_pict_num = parser->output_picture_number;
 			if (prev_pict_num >= 0 &&
 					parser->output_picture_number - prev_pict_num
-					< -MAX_REORDER_DELAY)
-				pict_num_msb++;
-			map[frame_count] =
-				(FrameMap){frame_count, parser->output_picture_number
-					+ (int)(pict_num_msb * 1024)};
+					< -MAX_REORDER_DELAY) {
+				pict_num_msb += max_pict_num + 1;
+				max_pict_num = 0;
+			}
+			map[frame_count] = (FrameMap){frame_count,
+				parser->output_picture_number + pict_num_msb};
 			prev_pict_num = parser->output_picture_number;
 			frame_count++;
 		}
