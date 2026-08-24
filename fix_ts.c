@@ -53,11 +53,14 @@ int main(int argc, char **argv) {
 	}
 
 	int video_index = -1;
+	enum AVCodecID codec_id;
 	for (unsigned i = 0; i < ifmt->nb_streams; i++)
-		if (ifmt->streams[i]->codecpar->codec_type == AVMEDIA_TYPE_VIDEO)
+		if (ifmt->streams[i]->codecpar->codec_type == AVMEDIA_TYPE_VIDEO) {
 			video_index = i;
+			codec_id = ifmt->streams[i]->codecpar->codec_id;
+        }
 
-	parser = av_parser_init(AV_CODEC_ID_H264);
+	parser = av_parser_init(codec_id);
 	codec_ctx = avcodec_alloc_context3(NULL);
 	avcodec_parameters_to_context(codec_ctx,
 			ifmt->streams[video_index]->codecpar);

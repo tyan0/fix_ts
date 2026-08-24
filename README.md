@@ -1,7 +1,7 @@
 # What is this?
 This tool fixes the broken timestamps due to an issue in Fedora ffmpeg-free package as well as Cygwin ffmpeg package.
 
-When you manupulate H.264 Video files, Fedora's ffmpeg package occasionally outputs:
+When you manipulate H.264/HEVC Video files, Fedora's ffmpeg package occasionally outputs:
 ``` log
 [vost#0:0/copy @ 0xa00061e80] Invalid DTS: 66 PTS: 33, replacing by guess
 [vost#0:0/copy @ 0xa00061e80] Invalid DTS: 198 PTS: 167, replacing by guess
