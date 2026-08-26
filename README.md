@@ -1,5 +1,5 @@
 # What is this?
-This tool fixes the broken timestamps due to an issue in Fedora ffmpeg-free package as well as Cygwin ffmpeg package.
+This tool fixes a video file that has broken timestamps due to an issue in Fedora ffmpeg-free package as well as Cygwin ffmpeg package.
 
 When you manipulate H.264/HEVC Video files, Fedora's ffmpeg package occasionally outputs:
 ``` log
