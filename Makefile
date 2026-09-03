@@ -1,5 +1,5 @@
-fix_ts: fix_ts.c
+tsfix: tsfix.c
 	$(CC) $< -o $@ -lavformat -lavcodec -lavutil
 
 clean:
-	$(RM) -f fix_ts
+	$(RM) -f tsfix
